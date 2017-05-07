@@ -669,7 +669,7 @@ func (t *SimpleChaincode) update_Weight(stub shim.ChaincodeStubInterface, m Memb
 
 	new_Weight, err := strconv.Atoi(string(new_value)) 		                // will return an error if the new Weight contains non numerical chars
 
-	if err != nil || len(string(new_value)) != 15 { return nil, errors.New("Invalid value passed for new Weight") }
+	if err != nil || len(string(new_value)) != 2 { return nil, errors.New("Invalid value passed for new Weight") }
 
 	if 		m.Name			== caller		&&
 			caller_affiliation	!= DEATH		&&
