@@ -284,7 +284,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	
 	caller, caller_affiliation, err := t.get_caller_data(stub)
 
-	if err != nil { return nil, errors.New("Error retrieving caller information")}
+	if err = nil { return nil, errors.New("Error retrieving caller information")}
 	
     logger.Debug("function: ", function)
     logger.Debug("caller: ", caller)
