@@ -26,7 +26,7 @@ const   ILLNESS 	=  "illness"
 const	DEATH		=  "death"
 
 //==============================================================================================================================
-//	 Status types - Asset lifecycle is broken down into 5 statuses, this is part of the business logic to determine what can
+//	 Status types - Member lifecycle is broken down into 5 statuses, this is part of the business logic to determine what can
 //					be done to the member at points in it's lifecycle
 //==============================================================================================================================
 const   STATE_CARRYING 			=  0
@@ -40,8 +40,8 @@ type  SimpleChaincode struct {
 
 
 //==============================================================================================================================
-//	member - Defines the structure for a car object. JSON on right tells it what JSON fields to map to
-//			  that element when reading a JSON object into the struct e.g. JSON make -> Struct Make.
+//	member - Defines the structure for a member. JSON on right tells it what JSON fields to map to
+//			  that element when reading a JSON object into the struct.
 //==============================================================================================================================
 type Member struct {
 	Name   	        string `json:"name"`
@@ -57,7 +57,7 @@ type Member struct {
 
 //==============================================================================================================================
 //	Ilns Holder - Defines the structure that holds all the Illness for Entity that have been created.
-//				Used as an index when querying all reports.
+//				Used as an index when querying all details of the member.
 //==============================================================================================================================
 
 type ILNS_Holder struct {
@@ -81,10 +81,6 @@ type User_and_eCert struct {
 //	Init Function - Called when the user deploys the chaincode
 //==============================================================================================================================
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-
-	//Args
-	//				0
-	//			peer_address
 
 	var ILNSIDs ILNS_Holder
 
@@ -169,12 +165,6 @@ func (t *SimpleChaincode) get_caller_data(stub shim.ChaincodeStubInterface) (str
 
 	user, err := t.get_username(stub)
 
-    // if err != nil { return "", "", err }
-
-	// ecert, err := t.get_ecert(stub, user);
-
-    // if err != nil { return "", "", err }
-
 	affiliation, err := t.check_affiliation(stub);
 
     if err != nil { return "", "", err }
@@ -255,14 +245,14 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
         if strings.Contains(function, "update") == false && function != "dead_member"    { 									// If the function is not an update or a death it must be a transfer so we need to get the ecert of the recipient.
 
 
-				if 		   function == "parents_to_birthday" { return t.parents_to_birthday(stub, m, caller, caller_affiliation, args[0], "birthday")
-				} else if  function == "birthday_to_healthy"   { return t.birthday_to_healthy(stub, m, caller, caller_affiliation, args[0], "healthy")
-				} else if  function == "healthy_to_illness"  { return t.healthy_to_illness(stub, m, caller, caller_affiliation, args[0], "illness")
-				} else if  function == "illness_to_illness" 	   { return t.illness_to_illness(stub, m, caller, caller_affiliation, args[0], "illness")
-				} else if  function == "illness_to_healthy"  { return t.illness_to_healthy(stub, m, caller, caller_affiliation, args[0], "healthy")
-				} else if  function == "healthy_to_death" { return t.healthy_to_death(stub, m, caller, caller_affiliation, args[0], "death")
-				} else if  function == "illness_to_death" { return t.illness_to_death(stub, m, caller, caller_affiliation, args[0], "death")
-				}
+		if 	function == "parents_to_birthday" 	{ return t.parents_to_birthday(stub, m, caller, caller_affiliation, args[0], "birthday")
+		} else if  function == "birthday_to_healthy"   	{ return t.birthday_to_healthy(stub, m, caller, caller_affiliation, args[0], "healthy")
+		} else if  function == "healthy_to_illness"  	{ return t.healthy_to_illness(stub, m, caller, caller_affiliation, args[0], "illness")
+		} else if  function == "illness_to_illness" 	{ return t.illness_to_illness(stub, m, caller, caller_affiliation, args[0], "illness")
+		} else if  function == "illness_to_healthy"  	{ return t.illness_to_healthy(stub, m, caller, caller_affiliation, args[0], "healthy")
+		} else if  function == "healthy_to_death" 	{ return t.healthy_to_death(stub, m, caller, caller_affiliation, args[0], "death")
+		} else if  function == "illness_to_death" 	{ return t.illness_to_death(stub, m, caller, caller_affiliation, args[0], "death")
+		}
 
 		} else if function == "update_DOB"        	{ return t.update_DOB(stub, m, caller, caller_affiliation, args[0])
 		} else if function == "update_gender" 		{ return t.update_gender(stub, m, caller, caller_affiliation, args[0])
@@ -324,7 +314,7 @@ func (t *SimpleChaincode) ping(stub shim.ChaincodeStubInterface) ([]byte, error)
 //=================================================================================================================================
 //	 Create Function
 //=================================================================================================================================
-//	 Create member - Creates the initial JSON for the vehcile and then saves it to the ledger.
+//	 Create member - Creates the initial JSON for the member and then saves it to the ledger.
 //=================================================================================================================================
 func (t *SimpleChaincode) create_member(stub shim.ChaincodeStubInterface, caller string, caller_affiliation string, ILNSID string) ([]byte, error) {
 	var m Member
@@ -410,7 +400,7 @@ func (t *SimpleChaincode) parents_to_birthday(stub shim.ChaincodeStubInterface, 
 			m.Dead				== false			{		// If the roles and users are ok
 
 					m.Name  = recipient_name					// then make the owner the new owner
-					m.Status = STATE_CARRYING						// and mark it in the state of manufacture
+					m.Status = STATE_CARRYING						// and mark it in the state of Birth
 
 	} else {											// Otherwise if there is an error
 			fmt.Printf("PARENTS_TO_BIRTHDAY: Permission Denied");
@@ -437,8 +427,8 @@ func (t *SimpleChaincode) birthday_to_healthy(stub shim.ChaincodeStubInterface, 
 			m.Gender   == "UNDEFINED" ||
 			m.BloodGrp == "UNDEFINED" ||
 			m.Weight      == 0				{					//If any detail of the member is undefined it has not been fully updated so cannot be sent
-															fmt.Printf("BIRTHDAY_TO_HEALTHY: Member not fully defined")
-															return nil, errors.New(fmt.Sprintf("Member not fully defined. %m", m))
+		fmt.Printf("BIRTHDAY_TO_HEALTHY: Member not fully defined")
+		return nil, errors.New(fmt.Sprintf("Member not fully defined. %m", m))
 	}
 
 	if 		m.Status		== STATE_BIRTH		&&
@@ -677,7 +667,7 @@ func (t *SimpleChaincode) update_gender(stub shim.ChaincodeStubInterface, m Memb
 //=================================================================================================================================
 func (t *SimpleChaincode) update_Weight(stub shim.ChaincodeStubInterface, m Member, caller string, caller_affiliation string, new_value string) ([]byte, error) {
 
-	new_Weight, err := strconv.Atoi(string(new_value)) 		                // will return an error if the new vin contains non numerical chars
+	new_Weight, err := strconv.Atoi(string(new_value)) 		                // will return an error if the new Weight contains non numerical chars
 
 	if err != nil || len(string(new_value)) != 15 { return nil, errors.New("Invalid value passed for new Weight") }
 
