@@ -283,8 +283,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	
 	caller, caller_affiliation, err := t.get_caller_data(stub)
+	if err != nil { fmt.Printf("QUERY: Error retrieving caller details", err); return nil, errors.New("QUERY: Error retrieving caller details: "+err.Error()) }
 
-	if err = nil { return nil, errors.New("Error retrieving caller information")}
 	
     logger.Debug("function: ", function)
     logger.Debug("caller: ", caller)
